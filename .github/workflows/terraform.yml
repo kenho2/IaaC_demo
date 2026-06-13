@@ -46,6 +46,10 @@ jobs:
             throw "Missing required secret: PROXMOX_API_TOKEN"
           }
 
+          if ([string]::IsNullOrWhiteSpace("${{ secrets.HOMELAB_TFVARS }}")) {
+            throw "Missing required secret: HOMELAB_TFVARS"
+          }
+
           $token = "${{ secrets.PROXMOX_API_TOKEN }}"
           if ($token -match '(?i)replace-me|changeme|example') {
             throw "PROXMOX_API_TOKEN appears to be a placeholder."
@@ -54,6 +58,12 @@ jobs:
           if ($token -notmatch '^[^=\s!@]+@[^=\s!]+![^=\s]+=[^=\s]+$') {
             throw "PROXMOX_API_TOKEN has invalid format. Expected user@realm!tokenid=secret."
           }
+
+      - name: Write CI tfvars
+        run: |
+          @"
+${{ secrets.HOMELAB_TFVARS }}
+"@ | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -111,6 +121,10 @@ jobs:
             throw "Missing required secret: PROXMOX_API_TOKEN"
           }
 
+          if ([string]::IsNullOrWhiteSpace("${{ secrets.HOMELAB_TFVARS }}")) {
+            throw "Missing required secret: HOMELAB_TFVARS"
+          }
+
           $token = "${{ secrets.PROXMOX_API_TOKEN }}"
           if ($token -match '(?i)replace-me|changeme|example') {
             throw "PROXMOX_API_TOKEN appears to be a placeholder."
@@ -119,6 +133,12 @@ jobs:
           if ($token -notmatch '^[^=\s!@]+@[^=\s!]+![^=\s]+=[^=\s]+$') {
             throw "PROXMOX_API_TOKEN has invalid format. Expected user@realm!tokenid=secret."
           }
+
+      - name: Write CI tfvars
+        run: |
+          @"
+${{ secrets.HOMELAB_TFVARS }}
+"@ | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
