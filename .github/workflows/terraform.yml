@@ -166,12 +166,6 @@ jobs:
         with:
           terraform_version: 1.11.0
 
-      - name: Download plan artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan
-          path: ${{ env.TF_WORKING_DIR }}
-
       - name: Terraform init
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} init -input=false
 
@@ -183,8 +177,11 @@ jobs:
           terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import 'module.proxmox_lxcs["ci_runner"].proxmox_virtual_environment_container.this' 1102 -input=false
           exit 0
 
+      - name: Terraform plan (apply job)
+        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan_apply.binary -input=false
+
       - name: Terraform apply
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan.binary
+        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan_apply.binary
 
       - name: Setup Python
         uses: actions/setup-python@v5
