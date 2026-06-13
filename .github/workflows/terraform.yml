@@ -80,8 +80,9 @@ jobs:
           $resp = Invoke-RestMethod -Uri "$endpoint`api2/json/nodes" `
             -Headers @{ Authorization = "PVEAPIToken=$token" } `
             -SkipCertificateCheck -ErrorAction Stop
-          if (-not $resp.data) { throw "Proxmox API returned empty response — check PROXMOX_API_TOKEN secret." }
-          Write-Host "Proxmox connectivity OK. Nodes: $(($resp.data | ForEach-Object { $_.node }) -join ', ')"
+          if (-not $resp.data) { throw "Proxmox API returned empty response - check PROXMOX_API_TOKEN secret." }
+          $nodes = ($resp.data | ForEach-Object { $_.node }) -join ', '
+          Write-Host "Proxmox connectivity OK. Nodes: $nodes"
 
       - name: Import existing resources
         run: |
