@@ -175,6 +175,14 @@ jobs:
       - name: Terraform init
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} init -input=false
 
+      - name: Import existing resources
+        run: |
+          # Import pre-existing resources into state to avoid "already exists" errors
+          $ErrorActionPreference = 'Continue'
+          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -allow-missing-config 'module.proxmox_vms["edge_vm"].proxmox_virtual_environment_vm.this' 1101 -input=false
+          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -allow-missing-config 'module.proxmox_lxcs["ci_runner"].proxmox_virtual_environment_container.this' 1102 -input=false
+          exit 0
+
       - name: Terraform apply
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan.binary
 
