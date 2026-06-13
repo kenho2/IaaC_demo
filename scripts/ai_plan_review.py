@@ -45,16 +45,43 @@ def _load_plan(plan_path: Path) -> dict:
 
 
 def _build_request(plan: dict, model: str) -> bytes:
-    user_payload = json.dumps(plan, indent=2, sort_keys=True)
+    user_payload = json.dumps(plan, separators=(",", ":"), sort_keys=True)
     request_body = {
         "model": model,
         "temperature": 0,
+        "max_tokens": 1200,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_payload},
         ],
     }
     return json.dumps(request_body).encode("utf-8")
+
+
+def _compact_plan(plan: dict) -> dict:
+    """Reduce payload size for local model endpoints that reject very large requests."""
+    resource_changes = []
+    for item in plan.get("resource_changes", []):
+        change = item.get("change", {})
+        resource_changes.append(
+            {
+                "address": item.get("address"),
+                "mode": item.get("mode"),
+                "type": item.get("type"),
+                "name": item.get("name"),
+                "actions": change.get("actions", []),
+                "before_sensitive": change.get("before_sensitive", {}),
+                "after_unknown": change.get("after_unknown", {}),
+            }
+        )
+
+    return {
+        "format_version": plan.get("format_version"),
+        "terraform_version": plan.get("terraform_version"),
+        "planned_values_present": bool(plan.get("planned_values")),
+        "resource_changes": resource_changes,
+        "output_changes": plan.get("output_changes", {}),
+    }
 
 
 def _post(endpoint: str, body: bytes) -> dict:
@@ -104,9 +131,26 @@ def main() -> int:
     try:
         plan = _load_plan(plan_path)
         body = _build_request(plan, args.model)
-        response = _post(args.endpoint, body)
+        try:
+            response = _post(args.endpoint, body)
+        except urllib.error.HTTPError as exc:
+            # LM Studio commonly returns HTTP 400 when request bodies exceed
+            # practical context limits. Retry with a compact plan projection.
+            if exc.code != 400:
+                raise
+            compact_body = _build_request(_compact_plan(plan), args.model)
+            response = _post(args.endpoint, compact_body)
         content = _extract_content(response)
         verdict = _parse_verdict(content)
+    except urllib.error.HTTPError as exc:
+        details = ""
+        try:
+            details = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            details = ""
+        suffix = f" | response: {details}" if details else ""
+        print(f"AI review request failed: HTTP {exc.code}{suffix}", file=sys.stderr)
+        return 3
     except urllib.error.URLError as exc:
         print(f"AI review request failed: {exc}", file=sys.stderr)
         return 3
