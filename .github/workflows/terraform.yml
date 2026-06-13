@@ -77,9 +77,15 @@ jobs:
           # Extract the endpoint from ci.tfvars and test auth before attempting import.
           $endpoint = (Select-String -Path "${{ env.TF_WORKING_DIR }}/${{ env.TF_CI_VAR_FILE }}" -Pattern 'proxmox_endpoint\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
           $token = $env:TF_VAR_proxmox_api_token
-          $resp = Invoke-RestMethod -Uri "$endpoint`api2/json/nodes" `
-            -Headers @{ Authorization = "PVEAPIToken=$token" } `
-            -SkipCertificateCheck -ErrorAction Stop
+          # PS5.1 (Windows PowerShell) does not have -SkipCertificateCheck; bypass via ServicePointManager.
+          [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+          try {
+            $resp = Invoke-RestMethod -Uri "${endpoint}api2/json/nodes" `
+              -Headers @{ Authorization = "PVEAPIToken=$token" } `
+              -ErrorAction Stop
+          } finally {
+            [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+          }
           if (-not $resp.data) { throw "Proxmox API returned empty response - check PROXMOX_API_TOKEN secret." }
           $nodes = ($resp.data | ForEach-Object { $_.node }) -join ', '
           Write-Host "Proxmox connectivity OK. Nodes: $nodes"
