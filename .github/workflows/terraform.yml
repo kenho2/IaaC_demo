@@ -72,7 +72,7 @@ jobs:
       - name: Terraform plan
         run: |
           terraform -chdir=${{ env.TF_WORKING_DIR }} plan -out=tfplan.binary -input=false
-          terraform -chdir=${{ env.TF_WORKING_DIR }} show -json tfplan.binary > tfplan.json
+          terraform -chdir=${{ env.TF_WORKING_DIR }} show -json tfplan.binary > ${{ env.TF_WORKING_DIR }}/tfplan.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
