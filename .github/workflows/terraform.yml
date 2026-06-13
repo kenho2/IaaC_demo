@@ -25,7 +25,7 @@ env:
   TF_INPUT: "false"
   TF_WORKING_DIR: environments/homelab
   LM_STUDIO_BASE_URL: http://localhost:1234/v1
-  LM_STUDIO_MODEL: local-model
+  LM_STUDIO_MODEL: google/gemma-4-12b-qat
   TF_VAR_proxmox_api_token: ${{ secrets.PROXMOX_API_TOKEN }}
 
 defaults:
