@@ -101,8 +101,8 @@ variable "startup" {
 variable "disk" {
   description = "Root filesystem disk"
   type = object({
-    datastore_id = optional(string)
-    size         = optional(number)
+    datastore_id  = optional(string)
+    size          = optional(number)
     mount_options = optional(list(string))
   })
   default = null
@@ -138,15 +138,15 @@ variable "idmap" {
 variable "network_interfaces" {
   description = "Container network interfaces"
   type = list(object({
-    name        = string
-    bridge      = optional(string)
-    enabled     = optional(bool)
-    firewall    = optional(bool)
+    name         = string
+    bridge       = optional(string)
+    enabled      = optional(bool)
+    firewall     = optional(bool)
     host_managed = optional(bool)
-    mac_address = optional(string)
-    mtu         = optional(number)
-    rate_limit  = optional(number)
-    vlan_id     = optional(number)
+    mac_address  = optional(string)
+    mtu          = optional(number)
+    rate_limit   = optional(number)
+    vlan_id      = optional(number)
   }))
   default = []
 }
@@ -169,7 +169,7 @@ variable "initialization" {
     user_data_file_id    = optional(string)
     network_data_file_id = optional(string)
     meta_data_file_id    = optional(string)
-    vendor_data_file_id   = optional(string)
+    vendor_data_file_id  = optional(string)
   })
   default = null
 }

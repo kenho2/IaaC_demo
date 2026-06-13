@@ -25,11 +25,11 @@ resource "proxmox_virtual_environment_vm" "this" {
     for_each = var.clone == null ? [] : [var.clone]
 
     content {
-      node_name   = try(clone.value.node_name, null)
-      vm_id       = clone.value.vm_id
+      node_name    = try(clone.value.node_name, null)
+      vm_id        = clone.value.vm_id
       datastore_id = try(clone.value.datastore_id, null)
-      full        = try(clone.value.full, null)
-      retries     = try(clone.value.retries, null)
+      full         = try(clone.value.full, null)
+      retries      = try(clone.value.retries, null)
     }
   }
 
@@ -89,18 +89,18 @@ resource "proxmox_virtual_environment_vm" "this" {
     for_each = concat(var.disk == null ? [] : [var.disk], var.disks)
 
     content {
-      datastore_id     = try(disk.value.datastore_id, null)
-      interface        = disk.value.interface
-      size             = try(disk.value.size, null)
-      file_id          = try(disk.value.file_id, null)
-      import_from      = try(disk.value.import_from, null)
+      datastore_id      = try(disk.value.datastore_id, null)
+      interface         = disk.value.interface
+      size              = try(disk.value.size, null)
+      file_id           = try(disk.value.file_id, null)
+      import_from       = try(disk.value.import_from, null)
       path_in_datastore = try(disk.value.path_in_datastore, null)
-      cache            = try(disk.value.cache, null)
-      aio              = try(disk.value.aio, null)
-      iothread         = try(disk.value.iothread, null)
-      discard          = try(disk.value.discard, null)
-      replicate        = try(disk.value.replicate, null)
-      ssd              = try(disk.value.ssd, null)
+      cache             = try(disk.value.cache, null)
+      aio               = try(disk.value.aio, null)
+      iothread          = try(disk.value.iothread, null)
+      discard           = try(disk.value.discard, null)
+      replicate         = try(disk.value.replicate, null)
+      ssd               = try(disk.value.ssd, null)
     }
   }
 
@@ -124,12 +124,12 @@ resource "proxmox_virtual_environment_vm" "this" {
     for_each = var.initialization == null ? [] : [var.initialization]
 
     content {
-      datastore_id       = try(initialization.value.datastore_id, null)
-      user_data_file_id  = try(initialization.value.user_data_file_id, null)
+      datastore_id         = try(initialization.value.datastore_id, null)
+      user_data_file_id    = try(initialization.value.user_data_file_id, null)
       network_data_file_id = try(initialization.value.network_data_file_id, null)
-      meta_data_file_id  = try(initialization.value.meta_data_file_id, null)
-      vendor_data_file_id = try(initialization.value.vendor_data_file_id, null)
-      upgrade            = try(initialization.value.upgrade, null)
+      meta_data_file_id    = try(initialization.value.meta_data_file_id, null)
+      vendor_data_file_id  = try(initialization.value.vendor_data_file_id, null)
+      upgrade              = try(initialization.value.upgrade, null)
 
       dynamic "ip_config" {
         for_each = (

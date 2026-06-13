@@ -1,22 +1,22 @@
 resource "proxmox_virtual_environment_container" "this" {
-  description    = var.description
-  node_name      = var.node_name
-  vm_id          = var.vm_id
-  tags           = sort(var.tags)
-  pool_id        = var.pool_id
-  started        = var.started
-  start_on_boot  = var.start_on_boot
-  protection     = var.protection
-  unprivileged   = var.unprivileged
+  description   = var.description
+  node_name     = var.node_name
+  vm_id         = var.vm_id
+  tags          = sort(var.tags)
+  pool_id       = var.pool_id
+  started       = var.started
+  start_on_boot = var.start_on_boot
+  protection    = var.protection
+  unprivileged  = var.unprivileged
 
   dynamic "clone" {
     for_each = var.clone == null ? [] : [var.clone]
 
     content {
-      node_name   = try(clone.value.node_name, null)
-      vm_id       = clone.value.vm_id
+      node_name    = try(clone.value.node_name, null)
+      vm_id        = clone.value.vm_id
       datastore_id = try(clone.value.datastore_id, null)
-      full        = try(clone.value.full, null)
+      full         = try(clone.value.full, null)
     }
   }
 
@@ -66,8 +66,8 @@ resource "proxmox_virtual_environment_container" "this" {
     for_each = var.disk == null ? [] : [var.disk]
 
     content {
-      datastore_id = try(disk.value.datastore_id, null)
-      size         = try(disk.value.size, null)
+      datastore_id  = try(disk.value.datastore_id, null)
+      size          = try(disk.value.size, null)
       mount_options = try(disk.value.mount_options, null)
     }
   }
@@ -119,8 +119,8 @@ resource "proxmox_virtual_environment_container" "this" {
     for_each = var.initialization == null ? [] : [var.initialization]
 
     content {
-      hostname           = try(initialization.value.hostname, null)
-      entrypoint         = try(initialization.value.entrypoint, null)
+      hostname   = try(initialization.value.hostname, null)
+      entrypoint = try(initialization.value.entrypoint, null)
 
       dynamic "ip_config" {
         for_each = (

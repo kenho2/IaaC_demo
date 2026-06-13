@@ -94,10 +94,10 @@ variable "memory" {
 variable "agent" {
   description = "QEMU agent configuration"
   type = object({
-    enabled = optional(bool)
-    timeout = optional(string)
-    trim    = optional(bool)
-    type    = optional(string)
+    enabled              = optional(bool)
+    timeout              = optional(string)
+    trim                 = optional(bool)
+    type                 = optional(string)
     wait_for_ip_disabled = optional(bool)
   })
   default = null
@@ -116,7 +116,7 @@ variable "startup" {
 variable "operating_system" {
   description = "Operating system configuration"
   type = object({
-    type            = optional(string)
+    type             = optional(string)
     template_file_id = optional(string)
   })
   default = null
@@ -125,18 +125,18 @@ variable "operating_system" {
 variable "disk" {
   description = "Primary boot disk"
   type = object({
-    datastore_id     = optional(string)
-    interface        = optional(string)
-    size             = optional(number)
-    file_id          = optional(string)
-    import_from      = optional(string)
+    datastore_id      = optional(string)
+    interface         = optional(string)
+    size              = optional(number)
+    file_id           = optional(string)
+    import_from       = optional(string)
     path_in_datastore = optional(string)
-    cache            = optional(string)
-    aio              = optional(string)
-    iothread         = optional(bool)
-    discard          = optional(string)
-    replicate        = optional(bool)
-    ssd              = optional(bool)
+    cache             = optional(string)
+    aio               = optional(string)
+    iothread          = optional(bool)
+    discard           = optional(string)
+    replicate         = optional(bool)
+    ssd               = optional(bool)
   })
   default = null
 }
@@ -153,18 +153,18 @@ variable "cdrom" {
 variable "disks" {
   description = "Additional disks"
   type = list(object({
-    datastore_id     = string
-    interface        = string
-    size             = optional(number)
-    file_id          = optional(string)
-    import_from      = optional(string)
+    datastore_id      = string
+    interface         = string
+    size              = optional(number)
+    file_id           = optional(string)
+    import_from       = optional(string)
     path_in_datastore = optional(string)
-    cache            = optional(string)
-    aio              = optional(string)
-    iothread         = optional(bool)
-    discard          = optional(string)
-    replicate        = optional(bool)
-    ssd              = optional(bool)
+    cache             = optional(string)
+    aio               = optional(string)
+    iothread          = optional(bool)
+    discard           = optional(string)
+    replicate         = optional(bool)
+    ssd               = optional(bool)
   }))
   default = []
 }
@@ -200,7 +200,7 @@ variable "initialization" {
     user_data_file_id    = optional(string)
     network_data_file_id = optional(string)
     meta_data_file_id    = optional(string)
-    vendor_data_file_id   = optional(string)
+    vendor_data_file_id  = optional(string)
     hostname             = optional(string)
     dns_servers          = optional(list(string), [])
     dns_domain           = optional(string)
