@@ -72,6 +72,17 @@ jobs:
       - name: Terraform validate
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} validate
 
+      - name: Verify Proxmox connectivity
+        run: |
+          # Extract the endpoint from ci.tfvars and test auth before attempting import.
+          $endpoint = (Select-String -Path "${{ env.TF_WORKING_DIR }}/${{ env.TF_CI_VAR_FILE }}" -Pattern 'proxmox_endpoint\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
+          $token = $env:TF_VAR_proxmox_api_token
+          $resp = Invoke-RestMethod -Uri "$endpoint`api2/json/nodes" `
+            -Headers @{ Authorization = "PVEAPIToken=$token" } `
+            -SkipCertificateCheck -ErrorAction Stop
+          if (-not $resp.data) { throw "Proxmox API returned empty response — check PROXMOX_API_TOKEN secret." }
+          Write-Host "Proxmox connectivity OK. Nodes: $(($resp.data | ForEach-Object { $_.node }) -join ', ')"
+
       - name: Import existing resources
         run: |
           # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
