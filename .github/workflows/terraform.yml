@@ -76,14 +76,6 @@ jobs:
       - name: Terraform validate
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} validate
 
-      - name: Import existing resources
-        run: |
-          # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
-          if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
-          if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
-
       - name: Write CI tfvars
         env:
           HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
@@ -91,6 +83,14 @@ jobs:
           $path = "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
           $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
           [System.IO.File]::WriteAllText($path, $env:HOMELAB_TFVARS, $utf8NoBom)
+
+      - name: Import existing resources
+        run: |
+          # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
+          if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
+          if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan.binary -input=false
@@ -190,5 +190,3 @@ jobs:
 
       - name: Post-Apply Health Check
         run: python scripts/terraform_output_health_check.py ${{ env.TF_WORKING_DIR }}
-
-
