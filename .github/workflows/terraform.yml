@@ -70,7 +70,7 @@ jobs:
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} validate
 
       - name: Terraform plan
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out=tfplan.binary -input=false
+        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan.binary -input=false
 
       - name: Terraform show json
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} show -json tfplan.binary > ${{ env.TF_WORKING_DIR }}/tfplan.json
