@@ -24,6 +24,7 @@ env:
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
   TF_WORKING_DIR: environments/homelab
+  TF_CI_VAR_FILE: ci.tfvars
   LM_STUDIO_BASE_URL: http://localhost:1234/v1
   LM_STUDIO_MODEL: google/gemma-4-e2b
   TF_VAR_proxmox_api_token: ${{ secrets.PROXMOX_API_TOKEN }}
@@ -74,13 +75,13 @@ jobs:
       - name: Import existing resources
         run: |
           # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false -var-file=${{ env.TF_CI_VAR_FILE }} "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
           if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false -var-file=${{ env.TF_CI_VAR_FILE }} "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
           if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan.binary -input=false
+        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan.binary -input=false
 
       - name: Terraform show json
         run: |
@@ -146,13 +147,13 @@ jobs:
       - name: Import existing resources
         run: |
           # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false -var-file=${{ env.TF_CI_VAR_FILE }} "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
           if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
-          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false -var-file=${{ env.TF_CI_VAR_FILE }} "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
           if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan (apply job)
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan_apply.binary -input=false
+        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan_apply.binary -input=false
 
       - name: Terraform apply
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan_apply.binary
