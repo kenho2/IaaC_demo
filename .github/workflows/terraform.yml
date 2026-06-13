@@ -1,0 +1,145 @@
+name: terraform
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Run terraform apply after a successful AI review"
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  TF_WORKING_DIR: environments/homelab
+  LM_STUDIO_BASE_URL: http://localhost:1234/v1
+  LM_STUDIO_MODEL: local-model
+  TF_VAR_proxmox_api_token: ${{ secrets.PROXMOX_API_TOKEN }}
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  plan:
+    name: plan
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preflight secrets
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${{ secrets.PROXMOX_API_TOKEN }}")) {
+            throw "Missing required secret: PROXMOX_API_TOKEN"
+          }
+
+          $token = "${{ secrets.PROXMOX_API_TOKEN }}"
+          if ($token -match '(?i)replace-me|changeme|example') {
+            throw "PROXMOX_API_TOKEN appears to be a placeholder."
+          }
+
+          if ($token -notmatch '^[^=\s!@]+@[^=\s!]+![^=\s]+=[^=\s]+$') {
+            throw "PROXMOX_API_TOKEN has invalid format. Expected user@realm!tokenid=secret."
+          }
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.0
+
+      - name: Terraform fmt
+        run: terraform -chdir=${{ env.TF_WORKING_DIR }} fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+
+      - name: Terraform validate
+        run: terraform -chdir=${{ env.TF_WORKING_DIR }} validate
+
+      - name: Terraform plan
+        run: |
+          terraform -chdir=${{ env.TF_WORKING_DIR }} plan -out=tfplan.binary -input=false
+          terraform -chdir=${{ env.TF_WORKING_DIR }} show -json tfplan.binary > tfplan.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: AI plan review
+        id: ai_review
+        run: |
+          python scripts/ai_plan_review.py `
+            --plan-json ${{ env.TF_WORKING_DIR }}/tfplan.json `
+            --endpoint ${{ env.LM_STUDIO_BASE_URL }} `
+            --model ${{ env.LM_STUDIO_MODEL }}
+
+      - name: Upload plan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            ${{ env.TF_WORKING_DIR }}/tfplan.binary
+            ${{ env.TF_WORKING_DIR }}/tfplan.json
+
+  apply:
+    name: apply
+    runs-on: self-hosted
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' && inputs.apply
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preflight secrets
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${{ secrets.PROXMOX_API_TOKEN }}")) {
+            throw "Missing required secret: PROXMOX_API_TOKEN"
+          }
+
+          $token = "${{ secrets.PROXMOX_API_TOKEN }}"
+          if ($token -match '(?i)replace-me|changeme|example') {
+            throw "PROXMOX_API_TOKEN appears to be a placeholder."
+          }
+
+          if ($token -notmatch '^[^=\s!@]+@[^=\s!]+![^=\s]+=[^=\s]+$') {
+            throw "PROXMOX_API_TOKEN has invalid format. Expected user@realm!tokenid=secret."
+          }
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.0
+
+      - name: Download plan artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform init
+        run: terraform -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+
+      - name: Terraform apply
+        run: terraform -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan.binary
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Post-Apply Health Check
+        run: python scripts/terraform_output_health_check.py ${{ env.TF_WORKING_DIR }}

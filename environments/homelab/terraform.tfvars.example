@@ -1,0 +1,125 @@
+proxmox_endpoint    = "https://pve.example.local:8006/"
+proxmox_insecure    = true
+proxmox_ssh_agent   = true
+proxmox_ssh_username = "terraform"
+
+compute_nodes = {
+  edge_vm = {
+    platform = "proxmox"
+    kind     = "vm"
+    name     = "edge-vm"
+    tags     = ["terraform", "homelab", "edge"]
+
+    proxmox = {
+      node_name          = "pve1"
+      vm_id              = 1101
+      description        = "Edge services VM"
+      pool_id            = "homelab"
+      started            = true
+      start_on_boot      = true
+      protection         = false
+      stop_on_destroy    = true
+      reboot_after_update = true
+
+      cpu = {
+        cores = 2
+        sockets = 1
+        type  = "x86-64-v2-AES"
+      }
+
+      memory = {
+        dedicated = 4096
+        floating  = 4096
+      }
+
+      disk = {
+        datastore_id = "local-lvm"
+        interface    = "scsi0"
+        size         = 24
+      }
+
+      network_devices = [
+        {
+          bridge = "vmbr0"
+          model  = "virtio"
+        }
+      ]
+
+      initialization = {
+        hostname = "edge-vm"
+        ipv4_address = "dhcp"
+        username = "ubuntu"
+        ssh_keys = ["ssh-ed25519 AAAAEXAMPLE replace-me"]
+        upgrade = true
+      }
+
+      operating_system = {
+        type = "l26"
+      }
+    }
+  }
+
+  ci_runner = {
+    platform = "proxmox"
+    kind     = "lxc"
+    name     = "ci-runner"
+    tags     = ["terraform", "homelab", "runner"]
+
+    proxmox = {
+      node_name       = "pve1"
+      vm_id           = 1102
+      description     = "CI runner container"
+      started         = true
+      start_on_boot   = true
+      unprivileged    = true
+
+      cpu = {
+        architecture = "amd64"
+        cores        = 2
+        limit        = 0
+        units        = 1024
+      }
+
+      memory = {
+        dedicated = 2048
+        swap      = 1024
+      }
+
+      features = {
+        nesting = true
+        fuse    = true
+        keyctl  = true
+      }
+
+      disk = {
+        datastore_id = "local-lvm"
+        size         = 8
+      }
+
+      network_interfaces = [
+        {
+          name   = "veth0"
+          bridge = "vmbr0"
+        }
+      ]
+
+      initialization = {
+        hostname   = "ci-runner"
+        ipv4_address = "dhcp"
+        username   = "root"
+        ssh_keys   = ["ssh-ed25519 AAAAEXAMPLE replace-me"]
+      }
+
+      operating_system = {
+        template_file_id = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+        type             = "debian"
+      }
+
+      startup = {
+        order      = 10
+        up_delay   = 30
+        down_delay = 30
+      }
+    }
+  }
+}
