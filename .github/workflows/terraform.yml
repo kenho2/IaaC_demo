@@ -78,11 +78,11 @@ jobs:
 
       - name: Import existing resources
         run: |
-          # Import pre-existing resources into state to avoid "already exists" errors
-          $ErrorActionPreference = 'Continue'
-          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import 'module.proxmox_vms["edge_vm"].proxmox_virtual_environment_vm.this' 1101 -input=false
-          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import 'module.proxmox_lxcs["ci_runner"].proxmox_virtual_environment_container.this' 1102 -input=false
-          exit 0
+          # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
+          if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
+          if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Write CI tfvars
         env:
@@ -171,11 +171,11 @@ jobs:
 
       - name: Import existing resources
         run: |
-          # Import pre-existing resources into state to avoid "already exists" errors
-          $ErrorActionPreference = 'Continue'
-          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import 'module.proxmox_vms["edge_vm"].proxmox_virtual_environment_vm.this' 1101 -input=false
-          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import 'module.proxmox_lxcs["ci_runner"].proxmox_virtual_environment_container.this' 1102 -input=false
-          exit 0
+          # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
+          if ($LASTEXITCODE -ne 0) { throw "edge_vm import failed with code $LASTEXITCODE" }
+          cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false "module.proxmox_lxcs[\"ci_runner\"].proxmox_virtual_environment_container.this" h1/1102'
+          if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan (apply job)
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan_apply.binary -input=false
@@ -190,3 +190,5 @@ jobs:
 
       - name: Post-Apply Health Check
         run: python scripts/terraform_output_health_check.py ${{ env.TF_WORKING_DIR }}
+
+
