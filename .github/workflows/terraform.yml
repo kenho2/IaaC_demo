@@ -66,7 +66,9 @@ jobs:
         env:
           HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          $env:HOMELAB_TFVARS | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $path = "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($path, $env:HOMELAB_TFVARS, $utf8NoBom)
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -144,7 +146,9 @@ jobs:
         env:
           HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          $env:HOMELAB_TFVARS | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $path = "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($path, $env:HOMELAB_TFVARS, $utf8NoBom)
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
