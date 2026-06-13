@@ -81,7 +81,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan.binary -input=false
+        run: cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan.binary -input=false'
 
       - name: Terraform show json
         run: |
@@ -153,7 +153,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ci_runner import failed with code $LASTEXITCODE" }
 
       - name: Terraform plan (apply job)
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan_apply.binary -input=false
+        run: cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -var-file=${{ env.TF_CI_VAR_FILE }} -out tfplan_apply.binary -input=false'
 
       - name: Terraform apply
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} apply -input=false -auto-approve tfplan_apply.binary
@@ -165,3 +165,5 @@ jobs:
 
       - name: Post-Apply Health Check
         run: python scripts/terraform_output_health_check.py ${{ env.TF_WORKING_DIR }}
+
+
