@@ -196,11 +196,22 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   lifecycle {
     ignore_changes = [
+      agent,
+      bios,
       boot_order,
       cdrom,
       clone,
+      efi_disk,
       initialization,
+      machine,
+      scsi_hardware,
+      stop_on_destroy,
     ]
   }
 }
+
+
+
+
+
 

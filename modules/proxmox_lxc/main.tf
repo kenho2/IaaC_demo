@@ -179,4 +179,24 @@ resource "proxmox_virtual_environment_container" "this" {
     template_file_id = var.operating_system.template_file_id
     type             = var.operating_system.type
   }
+
+  lifecycle {
+    ignore_changes = [
+      clone,
+      disk,
+      features,
+      initialization,
+      network_interface,
+      operating_system,
+      timeout_clone,
+      timeout_create,
+      timeout_delete,
+      timeout_start,
+      timeout_update,
+      vm_id,
+    ]
+  }
 }
+
+
+
