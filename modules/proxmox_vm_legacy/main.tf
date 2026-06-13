@@ -198,7 +198,9 @@ resource "proxmox_virtual_environment_vm" "this" {
     ignore_changes = [
       boot_order,
       cdrom,
+      clone,
       initialization,
     ]
   }
 }
+
