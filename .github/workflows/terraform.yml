@@ -78,6 +78,8 @@ jobs:
           $endpoint = (Select-String -Path "${{ env.TF_WORKING_DIR }}/${{ env.TF_CI_VAR_FILE }}" -Pattern 'proxmox_endpoint\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
           $token = $env:TF_VAR_proxmox_api_token
           # PS5.1 (Windows PowerShell) does not have -SkipCertificateCheck; bypass via ServicePointManager.
+          # Also force TLS 1.2 since PS5.1 defaults to TLS 1.0 which Proxmox rejects.
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
           [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
           try {
             $resp = Invoke-RestMethod -Uri "${endpoint}api2/json/nodes" `
