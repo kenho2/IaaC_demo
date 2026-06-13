@@ -67,7 +67,11 @@ jobs:
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} fmt -check -recursive
 
       - name: Terraform init
-        run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} init -input=false
+        run: |
+          # Remove any stale state from a previous runner execution so each run imports cleanly.
+          Remove-Item -Path "${{ env.TF_WORKING_DIR }}/terraform.tfstate" -ErrorAction SilentlyContinue
+          Remove-Item -Path "${{ env.TF_WORKING_DIR }}/terraform.tfstate.backup" -ErrorAction SilentlyContinue
+          terraform.exe -chdir=${{ env.TF_WORKING_DIR }} init -input=false
 
       - name: Terraform validate
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} validate
@@ -94,6 +98,8 @@ jobs:
           Write-Host "Proxmox connectivity OK. Nodes: $nodes"
 
       - name: Import existing resources
+        env:
+          TF_LOG: INFO
         run: |
           # PowerShell mangles Terraform for_each addresses on Windows; route through cmd.exe.
           cmd /c 'terraform.exe -chdir=${{ env.TF_WORKING_DIR }} import -input=false -var-file=${{ env.TF_CI_VAR_FILE }} "module.proxmox_vms[\"edge_vm\"].proxmox_virtual_environment_vm.this" h1/1101'
