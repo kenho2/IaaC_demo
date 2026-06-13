@@ -62,14 +62,6 @@ jobs:
             throw "PROXMOX_API_TOKEN has invalid format. Expected user@realm!tokenid=secret."
           }
 
-      - name: Write CI tfvars
-        env:
-          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
-        run: |
-          $path = "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
-          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-          [System.IO.File]::WriteAllText($path, $env:HOMELAB_TFVARS, $utf8NoBom)
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -83,6 +75,14 @@ jobs:
 
       - name: Terraform validate
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} validate
+
+      - name: Write CI tfvars
+        env:
+          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
+        run: |
+          $path = "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($path, $env:HOMELAB_TFVARS, $utf8NoBom)
 
       - name: Terraform plan
         run: terraform.exe -chdir=${{ env.TF_WORKING_DIR }} plan -out tfplan.binary -input=false
