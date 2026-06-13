@@ -60,7 +60,8 @@ jobs:
           }
 
       - name: Write CI tfvars
-        run: "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+        run: |
+          "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -132,7 +133,8 @@ jobs:
           }
 
       - name: Write CI tfvars
-        run: "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+        run: |
+          "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
