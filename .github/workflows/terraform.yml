@@ -41,16 +41,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Preflight secrets
+        env:
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          if ([string]::IsNullOrWhiteSpace("${{ secrets.PROXMOX_API_TOKEN }}")) {
+          if ([string]::IsNullOrWhiteSpace($env:PROXMOX_API_TOKEN)) {
             throw "Missing required secret: PROXMOX_API_TOKEN"
           }
 
-          if ([string]::IsNullOrWhiteSpace("${{ secrets.HOMELAB_TFVARS }}")) {
+          if ([string]::IsNullOrWhiteSpace($env:HOMELAB_TFVARS)) {
             throw "Missing required secret: HOMELAB_TFVARS"
           }
 
-          $token = "${{ secrets.PROXMOX_API_TOKEN }}"
+          $token = $env:PROXMOX_API_TOKEN
           if ($token -match '(?i)replace-me|changeme|example') {
             throw "PROXMOX_API_TOKEN appears to be a placeholder."
           }
@@ -60,8 +63,10 @@ jobs:
           }
 
       - name: Write CI tfvars
+        env:
+          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $env:HOMELAB_TFVARS | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -114,16 +119,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Preflight secrets
+        env:
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          if ([string]::IsNullOrWhiteSpace("${{ secrets.PROXMOX_API_TOKEN }}")) {
+          if ([string]::IsNullOrWhiteSpace($env:PROXMOX_API_TOKEN)) {
             throw "Missing required secret: PROXMOX_API_TOKEN"
           }
 
-          if ([string]::IsNullOrWhiteSpace("${{ secrets.HOMELAB_TFVARS }}")) {
+          if ([string]::IsNullOrWhiteSpace($env:HOMELAB_TFVARS)) {
             throw "Missing required secret: HOMELAB_TFVARS"
           }
 
-          $token = "${{ secrets.PROXMOX_API_TOKEN }}"
+          $token = $env:PROXMOX_API_TOKEN
           if ($token -match '(?i)replace-me|changeme|example') {
             throw "PROXMOX_API_TOKEN appears to be a placeholder."
           }
@@ -133,8 +141,10 @@ jobs:
           }
 
       - name: Write CI tfvars
+        env:
+          HOMELAB_TFVARS: ${{ secrets.HOMELAB_TFVARS }}
         run: |
-          "${{ secrets.HOMELAB_TFVARS }}" | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
+          $env:HOMELAB_TFVARS | Set-Content -Path "${{ env.TF_WORKING_DIR }}/ci.auto.tfvars"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
