@@ -15,6 +15,7 @@ This repository is a modular Terraform scaffold for a Proxmox VE homelab with an
 ├─ environments/
 │  └─ homelab/
 │     ├─ backend.tf
+│     ├─ ci.tfvars
 │     ├─ locals.tf
 │     ├─ main.tf
 │     ├─ outputs.tf
@@ -28,6 +29,10 @@ This repository is a modular Terraform scaffold for a Proxmox VE homelab with an
 │  │  ├─ outputs.tf
 │  │  └─ variables.tf
 │  ├─ proxmox_vm/
+│  │  ├─ main.tf
+│  │  ├─ outputs.tf
+│  │  └─ variables.tf
+│  ├─ proxmox_vm_legacy/
 │  │  ├─ main.tf
 │  │  ├─ outputs.tf
 │  │  └─ variables.tf
@@ -69,10 +74,30 @@ The design is intentionally self-healing in the Terraform sense: every pipeline 
 This scaffold includes:
 
 - A dedicated Proxmox VM module using `proxmox_virtual_environment_vm`.
+- A legacy Proxmox VM module variant for import-friendly lifecycle behavior.
 - A dedicated Proxmox LXC module using `proxmox_virtual_environment_container`.
 - A normalized, future-facing `compute_nodes` input structure that can carry Proxmox-specific and future AWS-specific payloads.
 - A GitHub Actions workflow that runs `terraform init`, `terraform plan`, `terraform show -json`, and a local AI gate before apply.
 - VS Code settings that format Terraform/HCL on save.
+
+## CI Import Bootstrap (Verified)
+
+The workflow now bootstraps state in CI by importing existing Proxmox workloads before planning. This was verified end-to-end on run `27479246842`.
+
+Key behavior:
+
+- Plan and apply jobs import `edge_vm` and `ci_runner` first, then run `terraform plan`.
+- Imports use Proxmox ID format `node/vmid` (example: `h1/1101`).
+- Windows PowerShell address escaping is handled by routing Terraform import/plan through `cmd /c`.
+- The plan job removes stale local state files on the runner before `terraform init` so each run starts clean.
+- Module lifecycle `ignore_changes` suppresses provider-populated defaults after import so CI plans stay stable.
+
+Required Proxmox token permissions for CI imports:
+
+- `PVEVMAdmin` at `/` (propagated)
+- `PVEDatastoreAdmin` at `/storage/local` and `/storage/local-lvm`
+
+Workflow inputs are sourced from tracked [environments/homelab/ci.tfvars](environments/homelab/ci.tfvars), while secrets remain in GitHub Actions (`PROXMOX_API_TOKEN`).
 
 ## Important Implementation Notes
 
@@ -157,6 +182,8 @@ If you also want Terraform to report VM guest IPs through the QEMU guest agent, 
 3. Terraform exports JSON plan output.
 4. The JSON is sent to the local AI endpoint for security, drift, and structural review.
 5. If the review passes, a manual workflow dispatch can proceed to `terraform apply` using the saved plan artifact.
+
+For import-bootstrap runs, step 2 includes explicit import of known existing resources before planning.
 
 ## Future AWS Integration
 
